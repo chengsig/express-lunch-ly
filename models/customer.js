@@ -35,6 +35,12 @@ class Customer {
     return this._phone;
   }
 
+  /** method for return fullName for a given customer */
+
+  get fullName() {
+    return this.firstName + " " + this.lastName;
+  }
+
   /** find all customers. */
 
   static async all() {
