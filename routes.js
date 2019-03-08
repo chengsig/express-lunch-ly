@@ -13,6 +13,7 @@ const router = new express.Router();
 router.get("/", async function (req, res, next) {
   try {
     const customers = await Customer.all();
+
     return res.render("customer_list.html", {customers})
   }
 
@@ -20,6 +21,22 @@ router.get("/", async function (req, res, next) {
     return next(err);
   }
 });
+
+
+router.post("/", async function(req, res, next){
+  try {
+    let searchTerm = req.body.search_bar;
+    const customers = await Customer.search(searchTerm);
+
+    if (customers.length === 0){
+      throw new Error("No customer names match that search.");
+    }
+
+    return res.render("customer_list.html", {customers})
+  } catch (err) {
+    return next(err);
+  }
+})
 
 
 /** Form to add a new customer. */

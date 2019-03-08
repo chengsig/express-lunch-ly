@@ -56,7 +56,7 @@ class Reservation {
   /** methods for setting/getting numGuests can only have one or more guests. */
 
   set numGuests(val) {
-    if (this._numGuests < 1 || !Number.isInteger(val) || isNaN(val)) 
+    if (this._numGuests < 1) 
       throw new Error('Must be at least one guest.');
     this._numGuests = val;
   }

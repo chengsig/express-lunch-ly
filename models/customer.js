@@ -80,6 +80,22 @@ class Customer {
     return new Customer(customer);
   }
 
+  /** get all customers that match search term */
+  static async search(name){
+
+    let sql = `SELECT id, 
+                first_name AS "firstName",  
+                last_name AS "lastName", 
+                phone, 
+                notes
+              FROM customers
+              WHERE first_name ILIKE '%${name}%'`
+
+    const results = await db.query(sql);
+
+    return results.rows.map(c => new Customer(c));
+  }
+
   /** get all reservations for this customer. */
 
   async getReservations() {
