@@ -53,6 +53,18 @@ class Reservation {
     return this._customerId;
   }
 
+  /** methods for setting/getting numGuests can only have one or more guests. */
+
+  set numGuests(val) {
+    if (this._numGuests < 1 || !Number.isInteger(val) || isNaN(val)) 
+      throw new Error('Must be at least one guest.');
+    this._numGuests = val;
+  }
+
+  get numGuests() {
+    return this._numGuests;
+  }
+
   /** given a customer id, find their reservations. */
 
   static async getReservationsForCustomer(customerId) {
