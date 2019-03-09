@@ -7,7 +7,7 @@ const Reservation = require("./reservation");
 /** Customer of the restaurant. */
 
 class Customer {
-  constructor({id, firstName, lastName, phone, notes}) {
+  constructor({ id, firstName, lastName, phone, notes }) {
     this.id = id;
     this.firstName = firstName;
     this.lastName = lastName;
@@ -45,7 +45,7 @@ class Customer {
 
   static async all() {
     const results = await db.query(
-          `SELECT id, 
+      `SELECT id, 
          first_name AS "firstName",  
          last_name AS "lastName", 
          phone, 
@@ -60,13 +60,13 @@ class Customer {
 
   static async get(id) {
     const results = await db.query(
-          `SELECT id, 
+      `SELECT id, 
          first_name AS "firstName",  
          last_name AS "lastName", 
          phone, 
          notes 
         FROM customers WHERE id = $1`,
-        [id]
+      [id]
     );
 
     const customer = results.rows[0];
@@ -81,17 +81,30 @@ class Customer {
   }
 
   /** get all customers that match search term */
-  static async search(name){
-
+  static async search(searchTerm) {
+    let $1;
+    let $2;
+    let searches = searchTerm.split(" ");
+    if (searches.length === 1) {
+      $1 = searches[0];
+    }
+    else if (searches.length === 2) {
+      $1 = searches[0];
+      $2 = searches[1];
+    }
     let sql = `SELECT id, 
                 first_name AS "firstName",  
                 last_name AS "lastName", 
                 phone, 
                 notes
               FROM customers
-              WHERE first_name ILIKE '%${name}%'`
+              WHERE first_name ILIKE $1
+              OR last_name ILIKE $2
+              OR (first_name ILIKE $1
+                AND last_name ILIKE $2)`
 
-    const results = await db.query(sql);
+    const results = await db.query(sql, [`%${$1}%`, `%${$2}%`]
+    );
 
     return results.rows.map(c => new Customer(c));
   }
@@ -102,21 +115,36 @@ class Customer {
     return await Reservation.getReservationsForCustomer(this.id);
   }
 
+  /** return the top 10 customers who have the most reservations */
+  static async getTopTenCustomers() {
+    const results = await db.query(
+      `SELECT customer_id AS "id", first_name AS "firstName", last_name AS "lastName", phone, customers.notes AS "notes"
+      FROM reservations
+      JOIN customers
+      ON reservations.customer_id=customers.id
+      GROUP BY customer_id, first_name, last_name, phone, customers.notes
+      ORDER BY COUNT(customer_id) DESC
+      LIMIT 10`
+    )
+  
+    return results.rows.map(c => new Customer(c))
+  }
+
   /** save this customer. */
 
   async save() {
     if (this.id === undefined) {
       const result = await db.query(
-            `INSERT INTO customers (first_name, last_name, phone, notes)
+        `INSERT INTO customers (first_name, last_name, phone, notes)
              VALUES ($1, $2, $3, $4)
              RETURNING id`,
-          [this.firstName, this.lastName, this.phone, this.notes]);
+        [this.firstName, this.lastName, this.phone, this.notes]);
       this.id = result.rows[0].id;
     } else {
       await db.query(
-            `UPDATE customers SET first_name=$1, last_name=$2, phone=$3, notes=$4)
+        `UPDATE customers SET first_name=$1, last_name=$2, phone=$3, notes=$4)
              WHERE id=$5`,
-          [this.firstName, this.lastName, this.phone, this.notes, this.id]);
+        [this.firstName, this.lastName, this.phone, this.notes, this.id]);
     }
   }
 }

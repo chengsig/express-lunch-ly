@@ -72,6 +72,19 @@ router.post("/add/", async function (req, res, next) {
   }
 });
 
+/** show list of top ten customers with the most reservations*/
+
+router.get("/topten/", async function (req, res, next) {
+  try {
+    const customers = await Customer.getTopTenCustomers();
+
+    return res.render("customer_top_ten_list.html", {customers})
+  }
+
+  catch (err) {
+    return next(err);
+  }
+});
 
 /** Show a customer, given their ID. */
 
